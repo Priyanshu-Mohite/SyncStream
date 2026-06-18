@@ -1,0 +1,64 @@
+.landingPageContainer {
+  height: 100vh;
+  width: 100%;
+  background: url("/background.jpg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  color: white;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.landingPageContainer nav {
+  padding-inline: 1.2rem;
+  padding-block: 1.6rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.landingPageContainer nav h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.landingPageContainer nav .navList {
+  display: flex;
+  gap: 1.6rem;
+  cursor: pointer;
+}
+
+.landingMainContainer {
+  display: flex;
+  justify-content: space-between;
+  padding-inline: 3rem;
+  align-items: center;
+  flex: 1;
+}
+
+.landingMainContainer > div:nth-child(1) {
+  font-size: 1.5rem;
+}
+
+.landingMainContainer > div:nth-child(1) div[role="button"] {
+  margin-top: 1.6rem;
+  padding: 0.8rem 1.6rem;
+  background-color: #ff9839;
+  width: fit-content;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.landingMainContainer > div:nth-child(1) div[role="button"] a {
+  text-decoration: none;
+  color: black;
+}
+
+.landingMainContainer > div:nth-child(2) img {
+  width: 600px;
+  max-width: 90%; /* Taaki side se chipke na */
+  height: auto;
+}
