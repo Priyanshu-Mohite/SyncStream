@@ -1,33 +1,32 @@
 import express from "express";
 import { createServer } from "node:http";
-import { Server } from "socket.io";
-import mongoose from "mongoose";
 import cors from "cors";
 import { connectToSocket } from "./controllers/socketManager.js";
 import userRoutes from "./routes/users.routes.js";
-
-import dotenv from "dotenv";
-dotenv.config();
+import config from "./config/config.js";
+import connectDB from "./config/database.js";
 
 const app = express();
 const server = createServer(app);
 const io = connectToSocket(server);
 
-app.set("port", process.env.PORT || 8000);
-app.use(cors()); 
-app.use(express.json({ limit: "40kb" })); 
+// Middleware
+app.use(cors());
+app.use(express.json({ limit: "40kb" }));
 app.use(express.urlencoded({ limit: "40kb", extended: true }));
 
+// Routes
 app.use("/api/v1/users", userRoutes);
 
-const start = async () => {
-  const connectionDb = await mongoose.connect(process.env.MONGO_URI);
+// Start Execution
+const startServer = async () => {
+  // Pehle DB connect kar
+  await connectDB();
 
-  console.log(`connected to db host: ${connectionDb.connection.host}`);
-
-  server.listen(app.get("port"), () => {
-    console.log("Server is running on port 8000");
+  // Jab DB connect ho jaye, tab server chalu kar
+  server.listen(config.PORT, () => {
+    console.log(`Server is running on port ${config.PORT}`);
   });
 };
 
-start();
+startServer();

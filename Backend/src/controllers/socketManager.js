@@ -10,7 +10,7 @@ export const connectToSocket = (server) => {
     cors: {
       origin: "http://localhost:5173", // Tera React ka exact URL (slash mat lagana end me)
       methods: ["GET", "POST"],
-      allowedHeader: ["*"],   
+      allowedHeader: ["*"],
       credentials: true, // Ye TRUE karna bohot zaroori hai agar tu JWT cookies use kar raha hai
     },
   });
@@ -73,29 +73,27 @@ export const connectToSocket = (server) => {
     });
 
     socket.on("disconnect", () => {
-      // 1. connections object me dhundo ki ye socket.id kis room (path) me thi
-      for (const [roomPath, users] of Object.entries(connections)) {
-        const userIndex = users.indexOf(socket.id);
+      // 1. Check karo ki ye banda kis room me tha
+      let currentRoom = null;
 
-        // Agar user is room me mil gaya
-        if (userIndex !== -1) {
-          // 2. Us user ko iss room ke array se remove karo
-          users.splice(userIndex, 1);
-
-          // 3. Room me bache hue sabhi logo ko batao ki ye banda leave kar gaya
-          // (Tere current code ke hisaab se manual loop, aage chalkar isko native rooms me convert karlena)
-          users.forEach((userId) => {
-            io.to(userId).emit("user-left", socket.id);
-          });
-
-          // 4. Memory optimization: Agar room khali ho gaya hai, toh usko object se uda do
-          if (users.length === 0) {
-            delete connections[roomPath];
-          }
-
-          // Ek user ek hi meeting me tha, toh aage search karne ki zarurat nahi
+      // Har room check karo connections object ke andar
+      for (const [path, users] of Object.entries(connections)) {
+        if (users.includes(socket.id)) {
+          currentRoom = path; // Mil gaya room!
           break;
         }
+      }
+
+      if (currentRoom) {
+        // 2. Register se is bande ka naam hatao
+        connections[currentRoom] = connections[currentRoom].filter(
+          (id) => id !== socket.id,
+        );
+
+        // 3. Bache hue sab logo ko bata do ki ye chala gaya
+        connections[currentRoom].forEach((id) => {
+          io.to(id).emit("user-left", socket.id);
+        });
       }
     });
   });

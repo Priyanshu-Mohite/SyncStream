@@ -21,10 +21,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Password is required"],
       minlength: 4,
-      select: false, // hide password by default
+      select: false, // Security: hide password by default in queries
     },
-    token: {
-        type: String
+    isVerified: {
+      type: Boolean,
+      default: false, // Email verification status
     }
   },
   { timestamps: true }
@@ -32,4 +33,4 @@ const userSchema = new mongoose.Schema(
 
 const User = mongoose.model("User", userSchema);
 
-export {User};
+export { User };
