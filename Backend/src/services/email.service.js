@@ -1,6 +1,6 @@
 // services/email.service.js
 import nodemailer from "nodemailer";
-import config from "../config.js"; // Tera existing config file
+import config from "../config/config.js"; // Tera existing config file
 
 const transporter = nodemailer.createTransport({
   service: "gmail",

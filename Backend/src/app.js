@@ -5,10 +5,13 @@ import { connectToSocket } from "./controllers/socketManager.js";
 import userRoutes from "./routes/users.routes.js";
 import config from "./config/config.js";
 import connectDB from "./config/database.js";
+import cookieParser from "cookie-parser";
 
 const app = express();
 const server = createServer(app);
 const io = connectToSocket(server);
+
+app.use(cookieParser());
 
 // Middleware
 app.use(cors());
