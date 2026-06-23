@@ -20,9 +20,9 @@ const sessionSchema = new mongoose.Schema(
     revoked: {
       type: Boolean,
       default: false, // If true, this session is killed/logged out
-    }
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const Session = mongoose.model("Session", sessionSchema);

@@ -26,9 +26,9 @@ const userSchema = new mongoose.Schema(
     isVerified: {
       type: Boolean,
       default: false, // Email verification status
-    }
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const User = mongoose.model("User", userSchema);

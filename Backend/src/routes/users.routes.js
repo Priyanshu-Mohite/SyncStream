@@ -1,5 +1,12 @@
 import { Router } from "express";
-import { registerUser, loginUser, verifyEmail, refreshAccessToken, logoutUser, logoutAllDevices } from "../controllers/user.controller.js"; // verifyEmail import kar
+import {
+  registerUser,
+  loginUser,
+  verifyEmail,
+  refreshAccessToken,
+  logoutUser,
+  logoutAllDevices,
+} from "../controllers/user.controller.js"; // verifyEmail import kar
 
 const router = Router();
 

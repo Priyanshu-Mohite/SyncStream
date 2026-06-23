@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import httpStatus from "http-status";
-import config from "../config.js";
+import config from "../config/config.js";
 
 export const authenticateUser = (req, res, next) => {
   try {
@@ -9,8 +9,8 @@ export const authenticateUser = (req, res, next) => {
 
     // 2. Check karna ki header exist karta hai aur "Bearer " se shuru hota hai
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(httpStatus.UNAUTHORIZED).json({ 
-        message: "Access Denied. No token provided or invalid format." 
+      return res.status(httpStatus.UNAUTHORIZED).json({
+        message: "Access Denied. No token provided or invalid format.",
       });
     }
 
@@ -21,15 +21,14 @@ export const authenticateUser = (req, res, next) => {
     const decoded = jwt.verify(token, config.JWT_SECRET);
 
     // 5. Agar token valid hai, toh decoded payload (jisme user ki ID hai) ko req object me daal do
-    req.user = decoded; 
+    req.user = decoded;
 
     // 6. Request ko aage next() function/controller ke paas bhej do
     next();
-
   } catch (error) {
     // Agar token expire ho gaya hai ya galat hai, toh jwt.verify() error throw karta hai
-    return res.status(httpStatus.UNAUTHORIZED).json({ 
-      message: "Invalid or expired token." 
+    return res.status(httpStatus.UNAUTHORIZED).json({
+      message: "Invalid or expired token.",
     });
   }
 };

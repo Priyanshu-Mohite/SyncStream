@@ -3,6 +3,7 @@ import { createServer } from "node:http";
 import cors from "cors";
 import { connectToSocket } from "./controllers/socketManager.js";
 import userRoutes from "./routes/users.routes.js";
+import meetingRoutes from "./routes/meeting.routes.js";
 import config from "./config/config.js";
 import connectDB from "./config/database.js";
 import cookieParser from "cookie-parser";
@@ -20,6 +21,7 @@ app.use(express.urlencoded({ limit: "40kb", extended: true }));
 
 // Routes
 app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/meetings", meetingRoutes);
 
 // Start Execution
 const startServer = async () => {
