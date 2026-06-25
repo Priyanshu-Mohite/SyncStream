@@ -370,3 +370,36 @@ export const logoutAllDevices = async (req, res) => {
       .json({ message: error.message });
   }
 };
+
+export const getMe = async (req, res) => {
+  try {
+    // 1. Middleware ne already token verify karke req.user me data set kar diya hai
+    const userId = req.user.userId; 
+
+    // 2. Database se user find karo aur password field ko exclude (-password) kar do
+    const user = await User.findById(userId).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User nahi mila!",
+      });
+    }
+
+    // 3. Professional response contract ke sath data send karo
+    return res.status(200).json({
+      success: true,
+      message: "User data fetched successfully",
+      data: {
+        user
+      }
+    });
+
+  } catch (error) {
+    console.error("Error in getMe controller:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};

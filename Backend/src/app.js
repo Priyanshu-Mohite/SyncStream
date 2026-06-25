@@ -23,11 +23,11 @@ app.use(cors({
 app.use(express.json({ limit: "40kb" }));
 app.use(express.urlencoded({ limit: "40kb", extended: true }));
 
+app.use(globalLimiter);
+
 // Routes
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/meetings", meetingRoutes);
-
-app.use(globalLimiter);
 
 // Start Execution
 const startServer = async () => {
