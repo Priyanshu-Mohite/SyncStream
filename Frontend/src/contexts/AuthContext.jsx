@@ -1,8 +1,11 @@
 // src/context/AuthContext.jsx
 import { createContext, useState, useEffect } from "react";
-import { getCurrentUser } from "../api/auth.service"; // Naya function import kiya
+import {
+  getCurrentUser,
+  refreshToken,
+  logoutUser,
+} from "../services/auth.service"; // Naya function import kiya
 import { setAxiosAccessToken } from "../api/axios"; // Axios se token setter import kiya
-import { refreshToken } from "../api/auth.service"; // Refresh token function import kiya
 
 export const AuthContext = createContext();
 
@@ -48,10 +51,21 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Logout function
-  const logout = () => {
-    setUser(null);
-    setAccessToken(null);
-    setAxiosAccessToken(null); // Axios header se token hata diya
+  const logout = async () => {
+    try {
+      // 1. Sabse pehle backend ko API call karo taaki woh DB me session revoke kare aur HTTP-Only cookie clear kare
+      await logoutUser();
+    } catch (error) {
+      console.error(
+        "Logout API failed, but clearing local state anyway",
+        error,
+      );
+    } finally {
+      // 2. Uske baad React ki state aur Axios ke headers se data uda do
+      setUser(null);
+      setAccessToken(null);
+      setAxiosAccessToken(null);
+    }
   };
 
   return (

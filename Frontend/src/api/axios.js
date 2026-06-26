@@ -29,7 +29,7 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // ==========================================
@@ -44,23 +44,26 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     // Agar error 401 (Unauthorized) hai aur request pehle retry nahi hui hai (_retry flag)
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      originalRequest.url !== "/users/refresh-token"
+    ) {
       originalRequest._retry = true; // Infinite loop se bachne ke liye flag set karo
 
       try {
         // Naya token fetch karne ke liye refresh endpoint call karo
         // (Yaha humara HTTP-only cookie automatically chala jayega 'withCredentials: true' ki wajah se)
         const refreshResponse = await api.post("/users/refresh-token");
-        
+
         const newAccessToken = refreshResponse.data.accessToken;
-        
+
         // Memory me naya token update kar do
         setAxiosAccessToken(newAccessToken);
 
         // Failed request ke header me naya token daalo aur request wapas retry karo
         originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
         return api(originalRequest);
-        
       } catch (refreshError) {
         // Agar refresh token bhi expire ho gaya hai, toh user ko force logout karna padega
         console.error("Refresh token expired. Please login again.");
@@ -71,7 +74,7 @@ api.interceptors.response.use(
 
     // Agar 401 ke alawa koi error hai (like 404, 500), toh error ko aage throw kar do
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;
