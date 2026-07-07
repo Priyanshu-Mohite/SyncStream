@@ -14,7 +14,7 @@ export const globalLimiter = rateLimit({
 // Strict limiter for Auth endpoints (to prevent brute-force/OTP spam)
 export const authLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour window
-  max: 100, // Limit each IP to 10 requests per hour for auth routes
+  max: 10, // Limit each IP to 10 requests per hour for auth routes
   message: {
     message: "Too many login/register attempts from this IP, please try again after an hour",
   },

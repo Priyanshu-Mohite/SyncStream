@@ -7,7 +7,7 @@ import meetingRoutes from "./routes/meeting.routes.js";
 import config from "./config/config.js";
 import connectDB from "./config/database.js";
 import cookieParser from "cookie-parser";
-// import { globalLimiter } from "./middlewares/rateLimit.middleware.js";
+import { globalLimiter } from "./middlewares/rateLimit.middleware.js";
 
 const app = express();
 const server = createServer(app);
@@ -23,7 +23,7 @@ app.use(cors({
 app.use(express.json({ limit: "40kb" }));
 app.use(express.urlencoded({ limit: "40kb", extended: true }));
 
-// app.use(globalLimiter);
+app.use(globalLimiter);
 
 // Routes
 app.use("/api/v1/users", userRoutes);
