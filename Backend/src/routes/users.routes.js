@@ -9,15 +9,20 @@ import {
   getMe, 
 } from "../controllers/user.controller.js"; 
 
-import { authLimiter } from "../middlewares/rateLimit.middleware.js";
+// import { authLimiter } from "../middlewares/rateLimit.middleware.js";
 import { authenticateUser } from "../middlewares/auth.middleware.js"; 
 
 const router = Router();
 
+// // Routes
+// router.route("/register").post(authLimiter, registerUser);
+// router.route("/verify-email").post(authLimiter, verifyEmail);
+// router.route("/login").post(authLimiter, loginUser);
+
 // Routes
-router.route("/register").post(authLimiter, registerUser);
-router.route("/verify-email").post(authLimiter, verifyEmail);
-router.route("/login").post(authLimiter, loginUser);
+router.route("/register").post(registerUser);
+router.route("/verify-email").post(verifyEmail);
+router.route("/login").post(loginUser);
 router.route("/refresh-token").post(refreshAccessToken);
 router.route("/logout").post(logoutUser); 
 router.route("/logout-all").post(logoutAllDevices);
