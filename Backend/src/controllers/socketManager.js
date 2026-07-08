@@ -236,7 +236,7 @@ export const connectToSocket = (server) => {
         if (!room) return callback({ error: "Room not found!" });
 
         const transport = await room.router.createWebRtcTransport({
-          listenIps: [{ ip: "0.0.0.0", announcedIp: "127.0.0.1" }],
+          listenIps: [{ ip: "0.0.0.0", announcedIp: config.PUBLIC_IP }],
           enableUdp: true,
           enableTcp: true,
           preferUdp: true,
