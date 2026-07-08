@@ -11,6 +11,7 @@ const requiredEnvVars = [
   "GOOGLE_CLIENT_SECRET",
   "GOOGLE_REFRESH_TOKEN",
   "JWT_SECRET",
+  "FRONTEND_URL"
 ];
 
 requiredEnvVars.forEach((key) => {
@@ -27,6 +28,8 @@ const config = {
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
   GOOGLE_REFRESH_TOKEN: process.env.GOOGLE_REFRESH_TOKEN,
   JWT_SECRET: process.env.JWT_SECRET,
+  FRONTEND_URL: process.env.FRONTEND_URL,
+  PUBLIC_IP: process.env.PUBLIC_IP || "127.0.0.1"
 };
 
 export default config;

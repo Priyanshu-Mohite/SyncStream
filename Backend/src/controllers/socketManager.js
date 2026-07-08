@@ -3,6 +3,7 @@ import { Server } from "socket.io";
 import mediasoup from "mediasoup";
 import os from "os";
 import { mediaCodecs } from "../config/mediasoupConfig.js";
+import config from "../config/config.js";
 
 // ==========================================
 // 1. STATE MANAGEMENT (Chat + Mediasoup)
@@ -56,7 +57,8 @@ async function createRoom() {
 export const connectToSocket = (server) => {
   const io = new Server(server, {
     cors: {
-      origin: "http://localhost:5173", // Tera React ka exact URL (slash mat lagana end me)
+      // origin: "http://localhost:5173", // Tera React ka exact URL (slash mat lagana end me)
+      origin: config.FRONTEND_URL,
       methods: ["GET", "POST"],
       allowedHeader: ["*"],
       credentials: true, // Ye TRUE karna bohot zaroori hai agar tu JWT cookies use kar raha hai
@@ -160,7 +162,11 @@ export const connectToSocket = (server) => {
         if (!room) return callback({ error: "Room not found!" });
 
         const transport = await room.router.createWebRtcTransport({
-          listenIps: [{ ip: "0.0.0.0", announcedIp: "127.0.0.1" }],
+          listenIps: [{ 
+            ip: "0.0.0.0", 
+            // announcedIp: "127.0.0.1" 
+            announcedIp: config.PUBLIC_IP
+          }],
           enableUdp: true,
           enableTcp: true,
           preferUdp: true,
