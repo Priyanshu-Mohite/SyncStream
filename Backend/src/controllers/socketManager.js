@@ -5,12 +5,15 @@ import os from "os";
 import { mediaCodecs } from "../config/mediasoupConfig.js";
 import config from "../config/config.js";
 
+import { createAdapter } from "@socket.io/redis-adapter";
+import { pubClient, subClient } from "../config/redis.js";
+
 // ==========================================
 // 1. STATE MANAGEMENT (Chat + Mediasoup)
-// ==========================================
-let connections = {};
-let messages = {};
-let timeOnline = {};
+// // ==========================================
+// let connections = {};
+// let messages = {};
+// let timeOnline = {};
 
 let workers = [];
 let nextWorkerIndex = 0;
@@ -65,29 +68,58 @@ export const connectToSocket = (server) => {
     },
   });
 
+  io.adapter(createAdapter(pubClient, subClient));
+
   io.on("connection", (socket) => {
     socket.on("join-call", (path) => {
-      if (connections[path] === undefined) {
-        connections[path] = [];
-      }
-      connections[path].push(socket.id);
-      timeOnline[socket.id] = Date.now();
+      // if (connections[path] === undefined) {
+      //   connections[path] = [];
+      // }
+      // connections[path].push(socket.id);
+      // timeOnline[socket.id] = Date.now();
 
       // connections[path].forEach((id) => {
       //   io.to(id).emit("user-joined", socket.id);
       // });
 
-      for (let a = 0; a < connections[path].length; a++) {
-        io.to(connections[path][a]).emit(
-          "user-joined",
-          socket.id,
-          connections[path],
-        );
+      // for (let a = 0; a < connections[path].length; a++) {
+      //   io.to(connections[path][a]).emit(
+      //     "user-joined",
+      //     socket.id,
+      //     connections[path],
+      //   );
+      // }
+
+      // if (messages[path] !== undefined) {
+      //   for (let a = 0; a < messages[path].length; a++) {
+      //     io.to(socket.id).emit("chat-message", messages[path][a]);
+      //   }
+      // }
+
+      // Socket object pe local cache (Disconnect ke time kaam aayega)
+      socket.roomId = path; 
+      const roomKey = `room:${path}`;
+
+      // Redis Set me socket.id add karo (O(1) insertion, no duplicates)
+      await pubClient.sAdd(roomKey, socket.id);
+
+      // Room ke saare active users nikal lo
+      const roomUsers = await pubClient.sMembers(roomKey);
+
+      // Sabko notify karo ki naya banda aaya hai
+      for (let i = 0; i < roomUsers.length; i++) {
+        io.to(roomUsers[i]).emit("user-joined", socket.id, roomUsers);
       }
 
-      if (messages[path] !== undefined) {
-        for (let a = 0; a < messages[path].length; a++) {
-          io.to(socket.id).emit("chat-message", messages[path][a]);
+      // Chat history load karo Redis List se (0 to -1 means saare messages)
+      const chatKey = `chat:${path}`;
+      const chatHistory = await pubClient.lRange(chatKey, 0, -1);
+      
+      if (chatHistory && chatHistory.length > 0) {
+        // Redis data strings me save karta hai, isliye parse karna padega
+        const parsedHistory = chatHistory.map(msg => JSON.parse(msg));
+        for (let i = 0; i < parsedHistory.length; i++) {
+          io.to(socket.id).emit("chat-message", parsedHistory[i]);
         }
       }
     });
@@ -99,9 +131,9 @@ export const connectToSocket = (server) => {
     // Jab koi banda message bhejta hai
     socket.on("chat-message", (roomPath, message) => {
       // 1. KYA IS ROOM KI CHAT HISTORY PEHLE SE HAI?
-      if (messages[roomPath] === undefined) {
-        messages[roomPath] = []; // Nahi hai toh ek khali array bana do
-      }
+      // if (messages[roomPath] === undefined) {
+      //   messages[roomPath] = []; // Nahi hai toh ek khali array bana do
+      // }
 
       // 2. CHAT HISTORY ME MESSAGE SAVE KARO (Late aane walo ke liye)
       // Hum message ke sath bhejne wale ki ID bhi save kar lenge
@@ -110,13 +142,30 @@ export const connectToSocket = (server) => {
         text: message,
         time: new Date().toLocaleTimeString(),
       };
-      messages[roomPath].push(messageData);
+      // messages[roomPath].push(messageData);
 
       // 3. ROOM ME BAITHE SAB LOGO KO MESSAGE BHEJ DO
       // connections[roomPath] me us room ke sab logo ki list hai
-      if (connections[roomPath]) {
-        connections[roomPath].forEach((userId) => {
-          // Server us message ko sabki taraf phek raha hai
+      // if (connections[roomPath]) {
+      //   connections[roomPath].forEach((userId) => {
+      //     // Server us message ko sabki taraf phek raha hai
+      //     io.to(userId).emit("chat-message", messageData);
+      //   });
+      // }
+
+      // Message ko Redis List me right-push (append) karo
+      const chatKey = `chat:${roomPath}`;
+      await pubClient.rPush(chatKey, JSON.stringify(messageData));
+
+      // Optional: Agar history bohot badi nahi karni, toh Redis list ko trim kar sakte ho (keep last 100 messages)
+      await pubClient.lTrim(chatKey, -100, -1);
+
+      // Redis Set se current users nikalo aur sabko broadcast kardo
+      const roomKey = `room:${roomPath}`;
+      const roomUsers = await pubClient.sMembers(roomKey);
+      
+      if (roomUsers) {
+        roomUsers.forEach((userId) => {
           io.to(userId).emit("chat-message", messageData);
         });
       }
@@ -328,18 +377,32 @@ export const connectToSocket = (server) => {
 
     socket.on("disconnect", () => {
       // 1. Chat Cleanup
-      let currentRoom = null;
-      for (const [path, users] of Object.entries(connections)) {
-        if (users.includes(socket.id)) {
-          currentRoom = path;
-          break;
-        }
-      }
-      if (currentRoom) {
-        connections[currentRoom] = connections[currentRoom].filter(
-          (id) => id !== socket.id,
-        );
-        connections[currentRoom].forEach((id) => {
+      // let currentRoom = null;
+      // for (const [path, users] of Object.entries(connections)) {
+      //   if (users.includes(socket.id)) {
+      //     currentRoom = path;
+      //     break;
+      //   }
+      // }
+      // if (currentRoom) {
+      //   connections[currentRoom] = connections[currentRoom].filter(
+      //     (id) => id !== socket.id,
+      //   );
+      //   connections[currentRoom].forEach((id) => {
+      //     io.to(id).emit("user-left", socket.id);
+      //   });
+      // }
+
+      // 1. Signaling & Chat Cleanup
+      if (socket.roomId) {
+        const roomKey = `room:${socket.roomId}`;
+        
+        // Redis Set se ye ID hata do (O(1) deletion)
+        await pubClient.sRem(roomKey, socket.id);
+
+        // Baki bache hue logo ko bata do ki user chala gaya
+        const remainingUsers = await pubClient.sMembers(roomKey);
+        remainingUsers.forEach((id) => {
           io.to(id).emit("user-left", socket.id);
         });
       }

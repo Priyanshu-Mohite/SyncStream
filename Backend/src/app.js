@@ -8,6 +8,7 @@ import config from "./config/config.js";
 import connectDB from "./config/database.js";
 import cookieParser from "cookie-parser";
 import { globalLimiter } from "./middlewares/rateLimit.middleware.js";
+import { connectRedis } from "./config/redis.js";
 
 const app = express();
 const server = createServer(app);
@@ -36,6 +37,7 @@ app.use("/api/v1/meetings", meetingRoutes);
 const startServer = async () => {
   // Pehle DB connect kar
   await connectDB();
+  await connectRedis();
   await createWorkers();
 
   // Jab DB connect ho jaye, tab server chalu kar
