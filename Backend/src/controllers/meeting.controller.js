@@ -1,19 +1,17 @@
 import { Meeting } from "../models/meeting.model.js";
 import httpStatus from "http-status";
-import { v4 as uuidv4 } from "uuid"; // Unique meeting code generate karne ke liye
+import { v4 as uuidv4 } from "uuid"; 
 
 export const createMeeting = async (req, res) => {
   try {
-    // req.user tere auth.middleware se aayega
     const hostId = req.user.userId;
 
-    // Zoom jaisa ek unique code generate karo (sirf first 8-10 characters le rahe hain clean dikhne ke liye)
     const meetingCode = uuidv4().substring(0, 13);
 
     const newMeeting = new Meeting({
       meetingCode,
       hostId,
-      participants: [hostId], // Host khud bhi ek participant hai
+      participants: [hostId], 
     });
 
     await newMeeting.save();
@@ -41,6 +39,7 @@ export const joinMeeting = async (req, res) => {
         .json({ message: "Meeting code is required" });
     }
 
+    // Direct Database Execution (Disk I/O)
     const meeting = await Meeting.findOne({ meetingCode });
 
     if (!meeting) {
@@ -55,7 +54,7 @@ export const joinMeeting = async (req, res) => {
         .json({ message: "This meeting has already ended" });
     }
 
-    // Check karo ki user pehle se participant list me toh nahi hai
+    // Pointer-safe comparison. Mongoose handles ObjectId matching in the document array.
     if (!meeting.participants.includes(userId)) {
       meeting.participants.push(userId);
       await meeting.save();

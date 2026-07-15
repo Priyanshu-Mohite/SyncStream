@@ -16,9 +16,8 @@ const Dashboard = () => {
     setIsLoading(true);
     setError('');
     
-    try {
+    try {   
       const data = await createMeeting();
-      // API hit hone par backend ne meetingCode diya, ab us room me redirect ho jao
       navigate(`/meeting/${data.meetingCode}`);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create a new meeting.');
@@ -40,7 +39,6 @@ const Dashboard = () => {
 
     try {
       const data = await joinMeeting(joinCode);
-      // Valid code hone par ushi meeting room me redirect ho jao
       navigate(`/meeting/${data.meetingCode}`);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to join. Invalid code or meeting ended.');

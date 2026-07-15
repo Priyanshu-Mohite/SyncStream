@@ -4,7 +4,7 @@ import { io } from "socket.io-client";
 import { useAuth } from "../hooks/useAuth";
 import { Device } from 'mediasoup-client';
 
-const SERVER_URL = "http://localhost:8080";
+const SERVER_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:8080";
 
 const RemoteVideo = ({ stream }) => {
   const videoRef = useRef(null);

@@ -2,7 +2,7 @@ import axios from "axios";
 
 const api = axios.create({
   // baseURL: "http://localhost:8080/api/v1",
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_BACKEND_URL,
   withCredentials: true, // Ye zaroori hai taaki HTTP-only cookie (refresh token) backend tak jaye
   headers: {
     "Content-Type": "application/json",
