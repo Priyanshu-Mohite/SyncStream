@@ -75,7 +75,7 @@ export const loginUser = async (req, res) => {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true, // Frontend JS (XSS) is cookie ko read nahi kar payegi
       secure: process.env.NODE_ENV === "production", // Production (HTTPS) me hi cookie bhejo
-      sameSite: "strict", // CSRF attacks se bachne ke liye
+      sameSite: "none", // CSRF attacks se bachne ke liye
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
     });
 
@@ -269,7 +269,7 @@ export const refreshAccessToken = async (req, res) => {
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -312,7 +312,7 @@ export const logoutUser = async (req, res) => {
     res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "none",
     });
 
     // 5. Send Success Response
@@ -357,7 +357,7 @@ export const logoutAllDevices = async (req, res) => {
     res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "none",
     });
 
     res
