@@ -2,7 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import LandingPage from './pages/LandingPage'
 import Authentication from './pages/Authentication'
 import ProtectedRoute from './components/ProtectedRoute' // Bouncer import kiya
-import Dashboard from './pages/Dashboard' // Ye humara next secure page hoga
+import Dashboard from './pages/DashBoard' 
 import PublicRoute from './components/PublicRoute'
 import MeetingRoom from './pages/MeetingRoom'
 
