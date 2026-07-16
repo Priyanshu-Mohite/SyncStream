@@ -12,3 +12,6 @@ Frontend/.env
 .DS_Store
 dist/
 build/
+
+*.pem
+*.pub
