@@ -42,7 +42,7 @@ const RemoteAudio = ({ stream }) => {
 const MeetingRoom = () => {
   const { meetingCode } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth(); // User data for future use
+  const { user, accessToken } = useAuth(); // User data for future use
 
   // Sockets & State
   const socketRef = useRef(null);
@@ -75,6 +75,9 @@ const MeetingRoom = () => {
     // 1. Initialize Socket Connection
     socketRef.current = io(SERVER_URL, {
       withCredentials: true, // Backend cors credentials match karne ke liye
+      auth: {
+        token: accessToken
+      }
     });
 
     // 2. Join the Specific Meeting Room
@@ -107,7 +110,10 @@ const MeetingRoom = () => {
 
     // 5. Cleanup on Unmount (Sabse important step memory leaks rokne ke liye)
     return () => {
-      socketRef.current.disconnect();
+      stopMediaTracks(); // <-- Component unmount hote hi camera band
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
     };
   }, [meetingCode]);
 
@@ -343,7 +349,23 @@ const MeetingRoom = () => {
     setNewMessage("");
   };
 
+  // Camera aur Mic band karne ka function
+  const stopMediaTracks = () => {
+    if (localVideoRef.current && localVideoRef.current.srcObject) {
+      const stream = localVideoRef.current.srcObject;
+      const tracks = stream.getTracks(); // Video aur Audio dono tracks nikal lo
+      
+      // Har ek track ko force stop karo
+      tracks.forEach((track) => track.stop()); 
+      
+      localVideoRef.current.srcObject = null; // Tag ko bhi khali kar do
+      setIsWebcamActive(false);
+      isWebcamStarting.current = false;
+    }
+  };
+
   const handleLeaveMeeting = () => {
+    stopMediaTracks();
     navigate("/dashboard");
   };
 

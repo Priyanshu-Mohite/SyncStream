@@ -65,6 +65,29 @@ export const connectToSocket = (server) => {
     },
   });
 
+  io.use((socket, next) => {
+    try {
+      // Frontend se bheja hua token catch karo
+      const token = socket.handshake.auth.token;
+      
+      if (!token) {
+        return next(new Error("Authentication error: Token missing"));
+      }
+
+      // Token ko verify karo
+      const decoded = jwt.verify(token, config.JWT_SECRET);
+      
+      // Token sahi hai toh user ki details socket object me save kar do
+      socket.user = decoded; 
+      
+      // Andar aane do
+      next();
+    } catch (err) {
+      // Token galat ya expire ho gaya
+      next(new Error("Authentication error: Invalid or expired token"));
+    }
+  });
+
   io.on("connection", (socket) => {
     socket.on("join-call", (path) => {
       if (connections[path] === undefined) {
@@ -342,6 +365,11 @@ export const connectToSocket = (server) => {
         connections[currentRoom].forEach((id) => {
           io.to(id).emit("user-left", socket.id);
         });
+        if (connections[currentRoom].length === 0) {
+          delete connections[currentRoom]; // Connections array uda do
+          delete messages[currentRoom];    // Chat history uda do
+          console.log(`Room ${currentRoom} is empty. Deleted chat & connections from memory.`);
+        }
       }
 
       // 2. SFU Cleanup
@@ -354,6 +382,12 @@ export const connectToSocket = (server) => {
           if (peer.recvTransport) peer.recvTransport.close();
           room.peers.delete(socket.id);
           console.log(`Memory cleared for Peer ${socket.id} in Room ${roomId}`);
+
+          if (room.peers.size === 0) {
+            room.router.close(); // Mediasoup ke worker se router ki processing band karo
+            sfuRooms.delete(roomId); // Map se room ka object uda do
+            console.log(`SFU Room ${roomId} is empty. Router closed and room deleted from memory.`);
+          }
         }
       });
     });
